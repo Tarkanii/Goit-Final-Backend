@@ -16,11 +16,9 @@ const login = async (req, res) => {
   const token = jwt.sign({ id: user._id }, SECRET_KEY);
   await User.findByIdAndUpdate(user._id, { token });
   res.json({
-    data: {
-      user: {
-        email,
-        token
-      }
+    user: {
+      email,
+      token
     }
   })
 
