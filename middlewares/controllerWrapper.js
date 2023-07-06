@@ -4,6 +4,15 @@ const controllerWrapper = (action) => {
       await action(req, res, next);
     } catch (error) {
       console.log('Controller Wrapper Error:\n', error.message);
+      
+      if (error.message.includes('Cast to ObjectId failed')) {
+        error.status = 404;
+
+        if (error.message.includes('project')) {
+          error.message = 'Project not found';
+        }
+      }
+
       if (error.message.includes('validation failed')) {
         error.status = 400;
       }
