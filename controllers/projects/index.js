@@ -33,7 +33,7 @@ const addProject = async (req, res) => {
     project: {
       name,
       description,
-      id: project._id
+      _id: project._id
     }
   });
 }
