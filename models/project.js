@@ -18,7 +18,7 @@ const projectSchema = Schema({
 
 const joiSchema = joi.object({
   name: joi.string().required(),
-  description: joi.string()
+  description: joi.string().allow('')
 })
 
 const Project = model('project', projectSchema);
