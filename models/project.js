@@ -13,7 +13,11 @@ const projectSchema = Schema({
   owner: {
     type: Schema.Types.ObjectId,
     ref: 'user'
-  }
+  },
+  sprints: [{
+    type: Schema.Types.ObjectId,
+    ref: 'sprint'
+  }]
 }, { timestamps: true, versionKey: false });
 
 const joiSchema = joi.object({

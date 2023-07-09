@@ -1,10 +1,11 @@
-const { Project } = require('../../models');
+const { Project, Sprint } = require('../../models');
 
 const fieldFilters = '_id name description';
+const sprintFieldFilters = '_id name startDate endDate duration';
 
 const getAllProjects = async (req, res) => {
   const { _id } = req.user;
-  const projects = await Project.find({ owner: _id }, fieldFilters);
+  const projects = await Project.find({ owner: _id }, fieldFilters).populate('sprints', sprintFieldFilters);
   res.json({
     projects
   });
@@ -12,7 +13,7 @@ const getAllProjects = async (req, res) => {
 
 const getProjectById = async (req, res) => {
   const { projectId } = req.params;
-  const project = await Project.findById(projectId, fieldFilters);
+  const project = await Project.findById(projectId, fieldFilters).populate('sprints', sprintFieldFilters);
   if (!project) {
     res.status(404).json({
       message: 'Project not found'
@@ -40,7 +41,7 @@ const addProject = async (req, res) => {
 
 const updateProjectById = async (req, res) => {
   const { projectId } = req.params;
-  const project = await Project.findByIdAndUpdate(projectId, req.body, { new: true, select: fieldFilters });
+  const project = await Project.findByIdAndUpdate(projectId, req.body, { new: true, select: fieldFilters }).populate('sprints', sprintFieldFilters);
   if (!project) {
     res.status(404).json({
       message: 'Project not found'
@@ -55,13 +56,19 @@ const updateProjectById = async (req, res) => {
 
 const deleteProjectById = async (req, res) => {
   const { projectId } = req.params;
-  const project = await Project.findByIdAndDelete(projectId);
+  const project = await Project.findById(projectId);
   if (!project) {
     res.status(404).json({
       message: 'Project not found'
     });
     return;
   }
+
+  project.sprints.map(async (id) => {
+    await Sprint.findByIdAndDelete(id);
+  });
+
+  await Project.findByIdAndDelete(projectId);
 
   res.status(204).json();
 }
