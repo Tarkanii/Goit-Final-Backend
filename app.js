@@ -7,11 +7,12 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const { validationRoutes, authRouter, projectsRouter } = require('./routes');
+const { validationRoutes, authRouter, projectsRouter, sprintsRouter } = require('./routes');
 
 app.use('/api/validation', validationRoutes);
 app.use('/api/auth', authRouter);
 app.use('/api/projects', projectsRouter);
+app.use('/api/sprints', sprintsRouter);
 
 app.use((req, res, next) => {
   res.status(404).json({
