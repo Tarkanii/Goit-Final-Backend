@@ -1,11 +1,21 @@
 const { Project, Sprint } = require('../../models');
 
 const fieldFilters = '_id name description';
-const sprintFieldFilters = '_id name startDate endDate duration';
+const sprintFieldFilters = '_id name startDate endDate duration tasks';
+const taskFieldFilters = '_id name scheduledHours totalHours spentHoursDay';
 
 const getAllProjects = async (req, res) => {
   const { _id } = req.user;
-  const projects = await Project.find({ owner: _id }, fieldFilters).populate('sprints', sprintFieldFilters);
+  const projects = await Project.find({ owner: _id }, fieldFilters)
+    .populate({
+      path: 'sprints',
+      select: sprintFieldFilters,
+      populate: {
+        path: 'tasks',
+        select: taskFieldFilters
+      }
+    })
+
   res.json({
     projects
   });
