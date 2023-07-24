@@ -21,7 +21,11 @@ const sprintSchema = Schema({
   project: {
     type: Schema.Types.ObjectId,
     ref: 'project'
-  }
+  },
+  tasks: [{
+    type: Schema.ObjectId,
+    ref: 'task'
+  }]
 }, { timestamps: true, versionKey: false })
 
 const joiSchema = joi.object({

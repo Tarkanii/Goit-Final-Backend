@@ -11,6 +11,14 @@ const controllerWrapper = (action) => {
         if (error.message.includes('project')) {
           error.message = 'Project not found';
         }
+
+        if (error.message.includes('sprint')) {
+          error.message = 'Sprint not found';
+        }
+
+        if (error.message.includes('task')) {
+          error.message = 'Task not found';
+        }
       }
 
       if (error.message.includes('validation failed')) {
