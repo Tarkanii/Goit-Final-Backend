@@ -1,4 +1,4 @@
-const { Project, Sprint } = require('../../models');
+const { Project, Sprint, Task } = require('../../models');
 
 const fieldFilters = '_id name description';
 const sprintFieldFilters = '_id name startDate endDate duration tasks';
@@ -66,7 +66,7 @@ const updateProjectById = async (req, res) => {
 
 const deleteProjectById = async (req, res) => {
   const { projectId } = req.params;
-  const project = await Project.findById(projectId);
+  const project = await Project.findByIdAndDelete(projectId);
   if (!project) {
     res.status(404).json({
       message: 'Project not found'
@@ -74,11 +74,15 @@ const deleteProjectById = async (req, res) => {
     return;
   }
 
-  project.sprints.map(async (id) => {
-    await Sprint.findByIdAndDelete(id);
-  });
-
-  await Project.findByIdAndDelete(projectId);
+  let tasksId = [];
+  for (const sprint of project.sprints) {
+    const { tasks } = await Sprint.findByIdAndDelete(sprint._id);
+    tasksId = [...tasksId, ...tasks];
+  }
+  
+  for (const id of tasksId) {
+    await Task.findByIdAndDelete(id);
+  }
 
   res.status(204).json();
 }

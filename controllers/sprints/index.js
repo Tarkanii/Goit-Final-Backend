@@ -1,4 +1,4 @@
-const { Sprint, Project } = require('../../models');
+const { Sprint, Project, Task } = require('../../models');
 
 const fieldFilters = '_id name startDate endDate duration';
 
@@ -54,6 +54,11 @@ const deleteSprintById = async (req, res) => {
     });
     return;
   }
+
+  sprint.tasks.forEach(async (id) => {
+    await Task.findByIdAndDelete(id);
+  })
+
   const { project: projectId } = sprint;
   const project = await Project.findByIdAndUpdate(projectId, { $pull: { sprints: id } });
   if (!project) {
