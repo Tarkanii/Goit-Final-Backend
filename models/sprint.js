@@ -16,7 +16,7 @@ const sprintSchema = Schema({
   },
   duration: {
     type: Number,
-    required: true
+    default: 0
   },
   project: {
     type: Schema.Types.ObjectId,
@@ -32,7 +32,6 @@ const joiSchema = joi.object({
   name: joi.string().required(),
   startDate: joi.string().required(),
   endDate: joi.string().required(),
-  duration: joi.number().required(),
   project: joi.string().required()
 })
 
