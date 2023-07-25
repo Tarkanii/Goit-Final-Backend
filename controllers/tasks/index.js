@@ -4,7 +4,9 @@ const fieldFilters = '_id name scheduledHours totalHours spentHoursDay';
 
 const addTask = async (req, res) => {
   const task = await Task.create({ ...req.body });
-  await Sprint.findByIdAndUpdate(req.body.sprint, { $push: { tasks: task._id } });
+  const sprint = await Sprint.findByIdAndUpdate(req.body.sprint, { $push: { tasks: task._id } });
+  const duration = sprint.duration + task.scheduledHours;
+  await Sprint.findByIdAndUpdate(req.body.sprint, { duration });
   const { name, scheduledHours, _id, totalHours, spentHoursDay } = task;
   
   res.json({
@@ -57,7 +59,9 @@ const updateSpentDay = async (req, res) => {
 const deleteTask = async (req, res) => {
   const { id } = req.params;
   const task = await Task.findByIdAndDelete(id);
-  await Sprint.findByIdAndUpdate(task.sprint, { $pull: { tasks: id } });
+  const sprint = await Sprint.findByIdAndUpdate(task.sprint, { $pull: { tasks: id } });
+  const duration = sprint.duration - task.scheduledHours;
+  await Sprint.findByIdAndUpdate(task.sprint, { duration });
 
   res.status(204).json();
 }
