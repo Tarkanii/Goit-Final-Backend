@@ -24,6 +24,7 @@ const addSprint = async (req, res) => {
   res.json({
     sprint: {
       _id: sprint._id,
+      duraion: sprint.duration,
       ...req.body
     }
   })
