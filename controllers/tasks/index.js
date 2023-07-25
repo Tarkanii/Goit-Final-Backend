@@ -46,7 +46,8 @@ const updateSpentDay = async (req, res) => {
   const { date, hours } = req.body;
   const newArr = task.spentHoursDay.filter((value) => value.date !== date);
   newArr.push({ date, hours });
-  const newTask = await Task.findByIdAndUpdate(id, { spentHoursDay: newArr }, { new: true, select: fieldFilters});
+  const totalHours = newArr.reduce((accum, spentDay) => accum += spentDay.hours, 0);
+  const newTask = await Task.findByIdAndUpdate(id, { spentHoursDay: newArr, totalHours }, { new: true, select: fieldFilters});
 
   res.json({
     task: newTask
