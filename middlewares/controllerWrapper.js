@@ -3,8 +3,6 @@ const controllerWrapper = (action) => {
     try {
       await action(req, res, next);
     } catch (error) {
-      console.log('Controller Wrapper Error:\n', error.message);
-      
       if (error.message.includes('Cast to ObjectId failed')) {
         error.status = 404;
 
