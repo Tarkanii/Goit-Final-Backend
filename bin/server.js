@@ -1,7 +1,12 @@
+const mongoose = require('mongoose');
 const app = require('../app');
 
-const { PORT = 3000 } = process.env;
+const { DB_HOST, PORT = 3000 } = process.env;
 
-app.listen(PORT, () => {
-  console.log(`listen to port ${PORT}`);
-});
+mongoose.connect(DB_HOST)
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`listen to port ${PORT}`);
+    });
+  })
+  .catch(() => process.exit(1))
