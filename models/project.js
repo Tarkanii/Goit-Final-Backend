@@ -17,6 +17,10 @@ const projectSchema = Schema({
   sprints: [{
     type: Schema.Types.ObjectId,
     ref: 'sprint'
+  }],
+  participants: [{
+    type: Schema.Types.ObjectId,
+    ref: 'user'
   }]
 }, { timestamps: true, versionKey: false });
 
