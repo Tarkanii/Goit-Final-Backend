@@ -13,8 +13,6 @@ router.put('/:projectId', authentication, controllerWrapper(controllers.updatePr
 
 router.delete('/:projectId', authentication, controllerWrapper(controllers.deleteProjectById));
 
-router.put('/:projectId/participants', authentication, controllerWrapper(controllers.addParticipant));
-
-router.delete('/:projectId/participants', authentication, controllerWrapper(controllers.deleteParticipant));
+router.patch('/:projectId/participants', authentication, controllerWrapper(controllers.updateParticipants));
 
 module.exports = router;

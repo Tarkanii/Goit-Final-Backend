@@ -99,9 +99,9 @@ const deleteProjectById = async (req, res) => {
   res.status(204).json();
 }
 
-const addParticipant = async (req, res) => {
+const updateParticipants = async (req, res) => {
   const { projectId } = req.params;
-  const { email } = req.body;
+  const { email, action } = req.body;
   const user = await User.findOne({ email });
   if (!user) {
     res.status(404).json({
@@ -110,7 +110,12 @@ const addParticipant = async (req, res) => {
     return;
   }
 
-  const project = await Project.findByIdAndUpdate(projectId, { $addToSet: { participants: user._id } }, { new: true });
+  let project;
+  if (action === 'delete') {
+    project = await Project.findByIdAndUpdate(projectId, { $pull: { participants: user._id } }, { new: true });
+  } else {
+    project = await Project.findByIdAndUpdate(projectId, { $addToSet: { participants: user._id } }, { new: true });
+  }
   if (!project) {
     res.status(404).json({
       message: 'Project not found'
@@ -124,30 +129,6 @@ const addParticipant = async (req, res) => {
 
 }
 
-const deleteParticipant = async (req, res) => {
-  const { projectId } = req.params;
-  const { email } = req.body;
-  const user = await User.findOne({ email });
-  if (!user) {
-    res.status(404).json({
-      message: 'User not found'
-    });
-    return;
-  }
-
-  const project = await Project.findByIdAndUpdate(projectId, { $pull: { participants: user._id } }, { new: true });
-  if (!project) {
-    res.status(404).json({
-      message: 'Project not found'
-    });
-    return;
-  }
-
-  res.json({
-    project: getProjectsForUser(project, user._id)
-  })
-
-}
 
 function getProjectsForUser(object, userId) {
   if (!Array.isArray(object)) {
@@ -190,6 +171,5 @@ module.exports = {
   getProjectById,
   updateProjectById,
   deleteProjectById,
-  addParticipant,
-  deleteParticipant
+  updateParticipants
 }
