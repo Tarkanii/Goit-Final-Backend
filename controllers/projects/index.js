@@ -21,7 +21,7 @@ const getAllProjects = async (req, res) => {
     })
 
   res.json({
-    projects: getModifiedProjects(projects, _id)
+    projects: getProjectsForUser(projects, _id)
   });
 }
 
@@ -40,7 +40,7 @@ const getProjectById = async (req, res) => {
   }
 
   res.json({
-    project: getModifiedProjects(project, _id)
+    project: getProjectsForUser(project, _id)
   });
 }
 
@@ -72,7 +72,7 @@ const updateProjectById = async (req, res) => {
   }
 
   res.json({
-    project: getModifiedProjects(project, _id)
+    project: getProjectsForUser(project, _id)
   });
 }
 
@@ -119,16 +119,23 @@ const addParticipant = async (req, res) => {
   }
 
   res.json({
-    project
+    project: getProjectsForUser(project, user._id)
   })
 
 }
 
 const deleteParticipant = async (req, res) => {
   const { projectId } = req.params;
-  const { userId } = req.body;
+  const { email } = req.body;
+  const user = await User.findOne({ email });
+  if (!user) {
+    res.status(404).json({
+      message: 'User not found'
+    });
+    return;
+  }
 
-  const project = await Project.findByIdAndUpdate(projectId, { $pull: { participants: userId } }, { new: true });
+  const project = await Project.findByIdAndUpdate(projectId, { $pull: { participants: user._id } }, { new: true });
   if (!project) {
     res.status(404).json({
       message: 'Project not found'
@@ -137,13 +144,12 @@ const deleteParticipant = async (req, res) => {
   }
 
   res.json({
-    project: getModifiedProjects(project, userId)
+    project: getProjectsForUser(project, user._id)
   })
 
 }
 
-function getModifiedProjects(object, userId) {
-
+function getProjectsForUser(object, userId) {
   if (!Array.isArray(object)) {
     const { _id, owner, sprints, description, name, participants } = object;
     return {
@@ -152,7 +158,7 @@ function getModifiedProjects(object, userId) {
       description,
       sprints,
       owner: String(owner) === String(userId),
-      participants
+      participants: getParticipantsForUser(participants)
     };
   }
 
@@ -163,12 +169,19 @@ function getModifiedProjects(object, userId) {
       description,
       sprints,
       owner: String(owner) === String(userId),
-      participants
+      participants: getParticipantsForUser(participants)
     });
 
     return accum; 
   }, []);
 
+}
+
+function getParticipantsForUser(participants) {
+  return participants.reduce((accum, { email }) => {
+    accum.push(email);
+    return accum;
+  }, []);
 }
 
 module.exports = {
