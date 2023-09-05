@@ -47,13 +47,9 @@ const getProjectById = async (req, res) => {
 const addProject = async (req, res) => {
   const { _id } = req.user;
   const { name, description = '' } = req.body;
-  const project = await Project.create({ name, description, owner: _id });
+  const project = await Project.create({ name, description, owner: _id, participants: [_id] });
   res.json({
-    project: {
-      name,
-      description,
-      _id: project._id
-    }
+    project: getProjectsForUser(project, _id)
   });
 }
 
