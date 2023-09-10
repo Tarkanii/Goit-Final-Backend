@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const { authentication, validation, controllerWrapper } = require('../../middlewares');
+const { authentication, validation, controllerWrapper, isOwner } = require('../../middlewares');
 const { projectsControllers: controllers } = require('../../controllers');
 const { joiSchema } = require('../../models/project');
 
@@ -11,8 +11,8 @@ router.post('/', authentication, validation(joiSchema), controllerWrapper(contro
 
 router.put('/:projectId', authentication, controllerWrapper(controllers.updateProjectById));
 
-router.delete('/:projectId', authentication, controllerWrapper(controllers.deleteProjectById));
+router.delete('/:projectId', authentication, controllerWrapper(isOwner), controllerWrapper(controllers.deleteProjectById));
 
-router.patch('/:projectId/participants', authentication, controllerWrapper(controllers.updateParticipants));
+router.patch('/:projectId/participants', authentication, controllerWrapper(isOwner), controllerWrapper(controllers.updateParticipants));
 
 module.exports = router;

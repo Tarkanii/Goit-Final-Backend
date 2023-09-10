@@ -15,10 +15,7 @@ const getAllProjects = async (req, res) => {
         select: taskFieldFilters
       }
     })
-    .populate({
-      path: 'participants',
-      select: 'email'
-    })
+    .populate('participants', 'email')
 
   res.json({
     projects: getProjectsForUser(projects, _id)
@@ -30,7 +27,7 @@ const getProjectById = async (req, res) => {
   const { _id } = req.user;
   const project = await Project.findById(projectId, fieldFilters)
     .populate('sprints', sprintFieldFilters)
-    .populate({ path: 'participants', select: 'email' });
+    .populate('participants', 'email');
 
   if (!project) {
     res.status(404).json({
@@ -48,6 +45,8 @@ const addProject = async (req, res) => {
   const { _id } = req.user;
   const { name, description = '' } = req.body;
   const project = await Project.create({ name, description, owner: _id, participants: [_id] });
+  await project.populate('participants', 'email');
+
   res.json({
     project: getProjectsForUser(project, _id)
   });
@@ -58,7 +57,7 @@ const updateProjectById = async (req, res) => {
   const { _id } = req.user;
   const project = await Project.findByIdAndUpdate(projectId, req.body, { new: true, select: fieldFilters })
     .populate('sprints', sprintFieldFilters)
-    .populate({ path: 'participants', select: 'email' });
+    .populate('participants', 'email');
 
   if (!project) {
     res.status(404).json({
@@ -74,16 +73,10 @@ const updateProjectById = async (req, res) => {
 
 const deleteProjectById = async (req, res) => {
   const { projectId } = req.params;
-  const project = await Project.findByIdAndDelete(projectId);
-  if (!project) {
-    res.status(404).json({
-      message: 'Project not found'
-    });
-    return;
-  }
+  await Project.findByIdAndDelete(projectId);
 
   let tasksId = [];
-  for (const sprint of project.sprints) {
+  for (const sprint of req.project.sprints) {
     const { tasks } = await Sprint.findByIdAndDelete(sprint._id);
     tasksId = [...tasksId, ...tasks];
   }
@@ -98,6 +91,7 @@ const deleteProjectById = async (req, res) => {
 const updateParticipants = async (req, res) => {
   const { projectId } = req.params;
   const { email, action } = req.body;
+  let { project } = req;
   const user = await User.findOne({ email });
   if (!user) {
     res.status(404).json({
@@ -106,17 +100,18 @@ const updateParticipants = async (req, res) => {
     return;
   }
 
-  let project;
-  if (action === 'delete') {
-    project = await Project.findByIdAndUpdate(projectId, { $pull: { participants: user._id } }, { new: true });
-  } else {
-    project = await Project.findByIdAndUpdate(projectId, { $addToSet: { participants: user._id } }, { new: true });
-  }
-  if (!project) {
-    res.status(404).json({
-      message: 'Project not found'
+  const isParticipantOwner = String(project.owner) === String(user._id);  
+  if (action === 'delete' && isParticipantOwner) {
+    res.status(403).json({
+      message: 'User delete not allowed'
     });
     return;
+  }
+
+  if (action === 'delete') {
+    project = await Project.findByIdAndUpdate(projectId, { $pull: { participants: user._id } }, { new: true }).populate('participants', 'email');
+  } else {
+    project = await Project.findByIdAndUpdate(projectId, { $addToSet: { participants: user._id } }, { new: true }).populate('participants', 'email');
   }
 
   res.json({
