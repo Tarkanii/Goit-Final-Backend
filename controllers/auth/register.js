@@ -5,7 +5,7 @@ const register = async (req, res) => {
   const user = await User.findOne({ email });
   if (user) {
     res.status(409).json({
-      message: `Already exist`
+      message: 'Already exist'
     })
     return;
   }

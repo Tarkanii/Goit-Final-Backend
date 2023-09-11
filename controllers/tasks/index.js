@@ -3,11 +3,20 @@ const { Task, Sprint } = require('../../models');
 const fieldFilters = '_id name scheduledHours totalHours spentHoursDay';
 
 const addTask = async (req, res) => {
-  const task = await Task.create({ ...req.body });
-  const sprint = await Sprint.findByIdAndUpdate(req.body.sprint, { $push: { tasks: task._id } });
-  const duration = sprint.duration + task.scheduledHours;
-  await Sprint.findByIdAndUpdate(req.body.sprint, { duration });
-  const { name, scheduledHours, _id, totalHours, spentHoursDay } = task;
+  const { name, sprint } = req.body;
+
+  let task = await Task.findOne({ sprint, name });
+  if (task) {
+    res.status(409).json({
+      message: 'Already exist'
+    });
+    return;
+  }
+
+  task = await Task.create({ ...req.body });
+  const { duration } = await Sprint.findByIdAndUpdate(req.body.sprint, { $push: { tasks: task._id } });
+  await Sprint.findByIdAndUpdate(req.body.sprint, { duration: duration + task.scheduledHours });
+  const { scheduledHours, _id, totalHours, spentHoursDay } = task;
   
   res.json({
     task: {
@@ -22,7 +31,16 @@ const addTask = async (req, res) => {
 
 const updateTaskName = async (req, res) => {
   const { id } = req.params;
-  const task = await Task.findByIdAndUpdate(id, { name: req.body.name }, { new: true, select: fieldFilters });
+  const { name, sprint } = req.body;
+  let task = await Task.findOne({ sprint, name });
+  if (task) {
+    res.status(409).json({
+      message: 'Already exist'
+    });
+    return;
+  }
+
+  task = await Task.findByIdAndUpdate(id, { name }, { new: true, select: fieldFilters });
   if (!task) {
     res.status(404).json({
       message: 'Task not found'
