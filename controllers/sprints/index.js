@@ -18,8 +18,18 @@ const getSprintById = async (req, res) => {
 }
 
 const addSprint = async (req, res) => {
-  const sprint = await Sprint.create({ ...req.body});
-  await Project.findByIdAndUpdate(req.body.project, { $push: { sprints: sprint._id } });
+  const { name, project } = req.body;
+
+  let sprint = await Sprint.findOne({ project, name });
+  if (sprint) {
+    res.status(409).json({
+      message: 'Already exist'
+    });
+    return;
+  }
+
+  sprint = await Sprint.create({ ...req.body});
+  await Project.findByIdAndUpdate(project, { $push: { sprints: sprint._id } });
 
   res.json({
     sprint: {
@@ -32,8 +42,17 @@ const addSprint = async (req, res) => {
 
 const updateSprintName = async (req, res) => {
   const { id } = req.params;
-  const { name } = req.body;
-  const sprint = await Sprint.findByIdAndUpdate(id, { name }, { new: true, select: fieldFilters });
+  const { name, project } = req.body;
+
+  let sprint = await Sprint.findOne({ project, name });
+  if (sprint) {
+    res.status(409).json({
+      message: 'Already exist'
+    });
+    return;
+  }
+
+  sprint = await Sprint.findByIdAndUpdate(id, { name }, { new: true, select: fieldFilters });
   if (!sprint) {
     res.status(404).json({
       message: 'Sprint not found'
