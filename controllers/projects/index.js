@@ -44,7 +44,15 @@ const getProjectById = async (req, res) => {
 const addProject = async (req, res) => {
   const { _id } = req.user;
   const { name, description = '' } = req.body;
-  const project = await Project.create({ name, description, owner: _id, participants: [_id] });
+  let project = await Project.findOne({ owner: _id, name });
+  if (project) {
+    res.status(409).json({
+      message: 'Already exist'
+    });
+    return;
+  }
+
+  project = await Project.create({ name, description, owner: _id, participants: [_id] });
   await project.populate('participants', 'email');
 
   res.json({
@@ -55,6 +63,17 @@ const addProject = async (req, res) => {
 const updateProjectById = async (req, res) => {
   const { projectId } = req.params;
   const { _id } = req.user;
+  
+  if (req.body?.name) {
+    const project = await Project.findOne({ owner: _id, name: req.body?.name });
+    if (project) {
+      res.status(409).json({
+        message: 'Already exist'
+      });
+      return;
+    }
+  }
+  
   const project = await Project.findByIdAndUpdate(projectId, req.body, { new: true, select: fieldFilters })
     .populate('sprints', sprintFieldFilters)
     .populate('participants', 'email');
@@ -119,7 +138,6 @@ const updateParticipants = async (req, res) => {
   })
 
 }
-
 
 function getProjectsForUser(object, userId) {
   if (!Array.isArray(object)) {
