@@ -15,7 +15,8 @@ const addTask = async (req, res) => {
 
   task = await Task.create({ ...req.body });
   const { duration } = await Sprint.findByIdAndUpdate(req.body.sprint, { $push: { tasks: task._id } });
-  await Sprint.findByIdAndUpdate(req.body.sprint, { duration: duration + task.scheduledHours });
+  const sprintDuration = duration + task.scheduledHours;
+  await Sprint.findByIdAndUpdate(req.body.sprint, { duration: sprintDuration.toFixed(2) });
   const { scheduledHours, _id, totalHours, spentHoursDay } = task;
   
   res.json({
@@ -77,9 +78,9 @@ const updateSpentDay = async (req, res) => {
 const deleteTask = async (req, res) => {
   const { id } = req.params;
   const task = await Task.findByIdAndDelete(id);
-  const sprint = await Sprint.findByIdAndUpdate(task.sprint, { $pull: { tasks: id } });
-  const duration = sprint.duration - task.scheduledHours;
-  await Sprint.findByIdAndUpdate(task.sprint, { duration });
+  const sprint = await Sprint.findByIdAndUpdate(task.sprint, { $pull: { tasks: id } }, { new: true });
+  const duration = sprint.tasks?.length ? sprint.duration - task.scheduledHours : 0;
+  await Sprint.findByIdAndUpdate(task.sprint, { duration: duration.toFixed(2) });
 
   res.status(204).json();
 }
